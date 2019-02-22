@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="camera1.themaestrochef.com.cameraappfordogs">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <application
+        android:name="camera1.themaestrochef.com.cameraappfordogs.MyApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- <meta-data -->
+        <!-- android:name="com.google.android.gms.ads.APPLICATION_ID" -->
+        <!-- android:value="ca-app-pub-3924158907329616~9536912933" /> -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/APP_AD_ID" />
+
+        <activity
+            android:name="camera1.themaestrochef.com.cameraappfordogs.Activities.CaptureImage"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="camera1.themaestrochef.com.cameraappfordogs.Activities.ShowAppImages" />
+        <activity android:name="camera1.themaestrochef.com.cameraappfordogs.Activities.CaptureVideo"></activity>
+        <activity android:name="camera1.themaestrochef.com.cameraappfordogs.Activities.VideoPreviewActivity" />
+        <activity android:name="camera1.themaestrochef.com.cameraappfordogs.Activities.ShowAppVideos" />
+        <activity android:name="camera1.themaestrochef.com.cameraappfordogs.Activities.ImagePreviewActivity" />
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.themaestrochef.camera1"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <activity android:name="camera1.themaestrochef.com.cameraappfordogs.Activities.InAppPurchases"></activity>
+    </application>
+
+</manifest>

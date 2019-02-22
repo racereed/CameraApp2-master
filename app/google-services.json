@@ -1,0 +1,43 @@
+{
+  "project_info": {
+    "project_number": "359460983845",
+    "firebase_url": "https://look-here-banner-ad.firebaseio.com",
+    "project_id": "look-here-banner-ad",
+    "storage_bucket": "look-here-banner-ad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:359460983845:android:aab1bf06db786cdd",
+        "android_client_info": {
+          "package_name": "camera1.themaestrochef.com.cameraappfordogs"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "359460983845-avs36ah70ikpnuloto03tanalvpaa8t1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1OT-lOYeXUJnGyn3tpyWKJLhLI76Ws2Q"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      },
+      "admob_app_id": "ca-app-pub-3924158907329616~9536912933"
+    }
+  ],
+  "configuration_version": "1"
+}
