@@ -21,7 +21,6 @@ import camera1.themaestrochef.com.cameraappfordogs.R;
 
 
 public class ImageHelper {
-
     public static Bitmap getLastTakenImage(Context context) {
         // Find the last picture
         String[] projection = new String[]{
@@ -81,15 +80,8 @@ public class ImageHelper {
         c = new Canvas(bmp);
         c.drawBitmap(source, 0, 0, paint);
         // Load the watermark
-//        watermark = BitmapFactory.decodeResource(context.getResources(), R.mipmap
-//                .ic_launcher);
 
-//        watermark= BitmapFactory.decodeResource( context.getResources(), R.drawable.ic_camera);
         watermark = getBitmapFromVectorDrawable(context, R.drawable.doggy_pic_watermark);
-
-//        Drawable vectorDrawable = VectorDrawableCompat.create(res, R.mipmap.ic_launcher,  context.getTheme());
-//        watermark = ((BitmapDrawable) vectorDrawable).getBitmap();
-        // Scale the watermark to be approximately 15% of the source image height
         scale = (float) (((float) h * 0.15) / (float) watermark.getHeight());
 //         Create the matrix
         matrix = new Matrix();
@@ -98,7 +90,7 @@ public class ImageHelper {
         r = new RectF(0, 0, watermark.getWidth(), watermark.getHeight());
         matrix.mapRect(r);
 
-        // Move the watermark to the bottom right corner
+        // Move the watermark to the top right corner
 //        matrix.postTranslate(w - r.width(), h - r.height());
 //        Move the watermark to the top left corner
         matrix.postTranslate(50, 50);

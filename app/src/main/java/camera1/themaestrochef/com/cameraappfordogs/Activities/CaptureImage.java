@@ -2,11 +2,14 @@ package camera1.themaestrochef.com.cameraappfordogs.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Paint;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +17,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
-
+import com.anjlab.android.iab.v3.BillingProcessor;
+import com.anjlab.android.iab.v3.SkuDetails;
+import com.anjlab.android.iab.v3.TransactionDetails;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -25,6 +30,8 @@ import com.otaliastudios.cameraview.Facing;
 import com.otaliastudios.cameraview.Flash;
 import com.otaliastudios.cameraview.Gesture;
 import com.otaliastudios.cameraview.GestureAction;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -41,11 +48,11 @@ public class CaptureImage extends AppCompatActivity {
     private static final String CAMERA_FACING_MODE = "camera_facing_mode";
     private static final String CAMERA_MODE_FRONT = "FRONT";
     private AudioManager mAudioManager;
+    public boolean noWatermarkPurchased = true;
 
     @Nullable
     @BindView(R.id.adView)
     AdView mAdView;
-
     @BindView(R.id.camera)
     CameraView mCameraView;
 
@@ -56,7 +63,6 @@ public class CaptureImage extends AppCompatActivity {
     @BindView(R.id.last_captured_image)
     ImageView lastImage;
 
-    public static Activity activity;
     boolean isPunchable =true;
 
     private static final Flash[] FLASH_OPTIONS = {
@@ -120,16 +126,40 @@ public class CaptureImage extends AppCompatActivity {
             }
         }
     };
+
+
+    public void checkPurchases(){
+        if(InAppPurchases.bp.loadOwnedPurchasesFromGoogle()&& InAppPurchases.bp.isPurchased(InAppPurchases.DISABLEDADSID)) {
+            SharedPreferences sp = getSharedPreferences("checkbox", MODE_PRIVATE);
+            SharedPreferences.Editor et = sp.edit();
+            et.putBoolean("isLogin", true);
+            et.apply();
+            boolean test = sp.getBoolean("isLogin", false);
+            Log.v("checkbooleanCheckPur", Boolean.toString(test));
+        }
+        else{
+            Log.v("checkTransactionDetails", "transactiondetailsarenull");
+
+        }
+    }
+
+    BillingProcessor.IBillingHandler handler;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-          if (camera1.themaestrochef.com.cameraappfordogs.Activities.InAppPurchases.adsDisabled){
-            setContentView(R.layout.content_main_no_ad);
-        } else{
-            setContentView(R.layout.content_main);
-        }
-        activity = this;
-        ButterKnife.bind(this);
+        InAppPurchases.startBillingProcessor(CaptureImage.this,handler );
+        checkPurchases();
+        SharedPreferences sp = getSharedPreferences("checkbox", 0);
+        boolean cb1 = sp.getBoolean("isLogin", false);
+        Log.v("checkbooleanCapture", Boolean.toString(cb1) );
 
+        Log.v("CaptureImage123", Boolean.toString(InAppPurchases.bp.isPurchased(InAppPurchases.DISABLEDADSID)) );
+            if (cb1) {
+                setContentView(R.layout.content_main_no_ad);
+            } if (!cb1){
+                setContentView(R.layout.content_main);
+            }
+
+        ButterKnife.bind(this);
         //Hide notificationBar
         UiUtilise.hideSystemBar(this);
         UiUtilise.hideToolBar(this);
@@ -144,16 +174,14 @@ public class CaptureImage extends AppCompatActivity {
                 }
             });
         }
-
         if (savedInstanceState != null) {
             String mode = savedInstanceState.getString(CAMERA_FACING_MODE);
             if (mode != null)
                 if (mode.equals(CAMERA_MODE_FRONT))
                     mCameraView.setFacing(Facing.FRONT);
 
-        } if (!camera1.themaestrochef.com.cameraappfordogs.Activities.InAppPurchases.adsDisabled)
+        } if (!cb1)
         AdsUtilities.initAds(mAdView);
-
 
 
     }
@@ -182,7 +210,7 @@ public class CaptureImage extends AppCompatActivity {
                     public void run() {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             if (PermissionUtilities.checkAndRequestPermissions(CaptureImage.this)) {
-
+                               
                                 Bitmap waterMarkedImage = ImageHelper.addWatermark
                                         (getResources(),
                                                 mCameraView.getFacing() == Facing.FRONT
@@ -344,8 +372,8 @@ public class CaptureImage extends AppCompatActivity {
     @OnClick(R.id.settings_wheel)
     public void openInAppPurchasesActivity(){
       //  bp.purchase(CaptureImage.this, "android.test.purchased");
-
         Intent intent = new Intent(this, InAppPurchases.class);
+        finish();
         startActivity(intent);
     }
 
@@ -355,5 +383,6 @@ public class CaptureImage extends AppCompatActivity {
             outState.putString(CAMERA_FACING_MODE, CAMERA_MODE_FRONT);
         }
     }
+
 
 }

@@ -142,7 +142,7 @@
             tools:ignore="ContentDescription" />
 
         <ImageView
-            android:id="@+id/pinch_image"
+            android:id="@+id/in_app_purchases"
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_weight="1"

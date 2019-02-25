@@ -1,19 +1,19 @@
 package camera1.themaestrochef.com.cameraappfordogs.Activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-
+import android.util.Log;
 import com.google.android.gms.ads.AdView;
-
 import java.io.File;
 import java.util.ArrayList;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -29,7 +29,7 @@ public class ImagePreviewActivity extends AppCompatActivity {
     ViewPager pager;
 
     ViewPageAdapter adapter;
-
+    @Nullable
     @BindView(R.id.adView)
     AdView mAdView;
     private String mPath;
@@ -44,7 +44,14 @@ public class ImagePreviewActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_image_preview);
+        SharedPreferences sp = getSharedPreferences("checkbox", 0);
+        boolean cb1 = sp.getBoolean("isLogin", false);
+        Log.v("checkbooleanCapture", Boolean.toString(cb1) );
+        if (cb1){
+        setContentView(R.layout.activity_image_preview);}
+        if(!cb1){
+            setContentView(R.layout.activity_image_preview_no_ads);
+        }
         UiUtilise.hideSystemBar(this);
         UiUtilise.hideToolBar(this);
         ButterKnife.bind(this);
@@ -52,7 +59,9 @@ public class ImagePreviewActivity extends AppCompatActivity {
         mPath = getIntent().getStringExtra("imagePath");
 
         //        Glide.with(this).load(mPath).into(imageView);
-        AdsUtilities.initAds(mAdView);
+        if(!cb1) {
+            AdsUtilities.initAds(mAdView);
+        }
 
     }
 

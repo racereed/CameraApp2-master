@@ -1,10 +1,12 @@
 package camera1.themaestrochef.com.cameraappfordogs.Activities;
 
 import android.Manifest;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +14,6 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-
 import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
@@ -34,20 +35,31 @@ public class ShowAppVideos extends AppCompatActivity {
     RecyclerView appVideo;
     VideoAdapter adapter;
 
+    @Nullable
     @BindView(R.id.adView)
     AdView mAdView;
 
     ArrayList al_video = new ArrayList<Model_Video>();
+ //   BillingProcessor.IBillingHandler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_show_app_videos);
+        SharedPreferences sp = getSharedPreferences("checkbox", 0);
+        boolean cb1 = sp.getBoolean("isLogin", false);
+        Log.v("checkbooleanCapture", Boolean.toString(cb1) );
+      //  InAppPurchases.startBillingProcessor(ShowAppVideos.this, handler);
+        if (cb1){
+        setContentView(R.layout.activity_show_app_videos_no_ads);}
+        if (!cb1){
+            setContentView(R.layout.activity_show_app_videos);}
         ButterKnife.bind(this);
         UiUtilise.hideToolBar(this);
         UiUtilise.hideSystemBar(this);
-        AdsUtilities.initAds(mAdView);
+        if (!cb1) {
 
+            AdsUtilities.initAds(mAdView);
+        }
     }
 
     private void init() {

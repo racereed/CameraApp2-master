@@ -6,8 +6,8 @@ android {
         applicationId "camera1.themaestrochef.com.cameraappfordogs"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 9
-        versionName "9"
+        versionCode 10
+        versionName "10"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         android.defaultConfig.vectorDrawables.useSupportLibrary = true
     }
@@ -46,6 +46,9 @@ dependencies {
     //adMob Lib
     implementation 'com.google.android.gms:play-services-ads:17.1.3'
     implementation 'com.anjlab.android.iab.v3:library:1.0.44'
+    //playbilling library
+ //  implementation 'com.android.billingclient:billing:1.2'
+
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

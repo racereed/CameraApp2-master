@@ -85,7 +85,14 @@
             android:layout_height="35dp"
             android:layout_weight="1"
             app:srcCompat="@drawable/ic_flash_auto"
+            tools:ignore="ContentDescription" />
 
+        <ImageView
+            android:id="@+id/settings_wheel"
+            android:layout_width="35dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            ads:srcCompat="@drawable/ic_settings_white_24dp"
             tools:ignore="ContentDescription" />
 
     </LinearLayout>

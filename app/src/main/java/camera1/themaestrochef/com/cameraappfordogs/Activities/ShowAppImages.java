@@ -1,16 +1,16 @@
 package camera1.themaestrochef.com.cameraappfordogs.Activities;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-
+import android.util.Log;
 import com.google.android.gms.ads.AdView;
-
 import java.util.ArrayList;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import camera1.themaestrochef.com.cameraappfordogs.Adapters.AppImagesAdapter;
@@ -25,19 +25,28 @@ public class ShowAppImages extends AppCompatActivity {
     RecyclerView appImages;
 
     AppImagesAdapter adapter;
-
+    @Nullable
     @BindView(R.id.adView)
     AdView mAdView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_show_app_images);
+        SharedPreferences sp = getSharedPreferences("checkbox", 0);
+        boolean cb1 = sp.getBoolean("isLogin", false);
+        Log.v("checkbooleanCapture", Boolean.toString(cb1) );
+        if (cb1) {
+        setContentView(R.layout.activity_show_app_images_no_ads);
+
+    } if (!cb1){
+            setContentView(R.layout.activity_show_app_images);
+    }
         ButterKnife.bind(this);
         UiUtilise.hideToolBar(this);
         UiUtilise.hideSystemBar(this);
+     if (!cb1){
 
-        AdsUtilities.initAds(mAdView);
+            AdsUtilities.initAds(mAdView);
+        }
 
     }
 

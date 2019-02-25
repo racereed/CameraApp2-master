@@ -1,17 +1,18 @@
 package camera1.themaestrochef.com.cameraappfordogs.Activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-
 import com.bumptech.glide.Glide;
 import com.google.android.gms.ads.AdView;
 import com.otaliastudios.cameraview.CameraListener;
@@ -43,7 +44,7 @@ public class CaptureVideo extends AppCompatActivity {
     @BindView(R.id.switch_flash)
     ImageView flashIcon;
 
-    @BindView(R.id.pinch_image)
+    @BindView(R.id.in_app_purchases)
     ImageView pinchIcon;
 
     @BindView(R.id.last_captured_video)
@@ -55,6 +56,7 @@ public class CaptureVideo extends AppCompatActivity {
     @BindView(R.id.take_video)
     ImageView takeVideo;
 
+    @Nullable
     @BindView(R.id.adView)
     AdView mAdView;
 
@@ -74,8 +76,13 @@ public class CaptureVideo extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_capture_video);
-        ButterKnife.bind(this);
+        SharedPreferences sp = getSharedPreferences("checkbox", 0);
+        boolean cb1 = sp.getBoolean("isLogin", false);
+        if (cb1) {
+            setContentView(R.layout.activicy_capture_video_no_ads);
+        } if (!cb1){
+            setContentView(R.layout.activity_capture_video);
+        }        ButterKnife.bind(this);
 
         //Hide notificationBar
         UiUtilise.hideSystemBar(this);
@@ -101,8 +108,9 @@ public class CaptureVideo extends AppCompatActivity {
                     mCameraView.setFacing(Facing.FRONT);
 
         }
-
-        AdsUtilities.initAds(mAdView);
+        if (!cb1) {
+            AdsUtilities.initAds(mAdView);
+        }
 
     }
 
@@ -112,15 +120,7 @@ public class CaptureVideo extends AppCompatActivity {
         mCameraView.setFlash(FLASH_OPTIONS[mCurrentFlash]);
 
         isPunchable = SharedPreferencesUtilities.getPinchValue(this);
-        if (mCameraView != null) {
-            if (isPunchable) {
-                mCameraView.mapGesture(Gesture.PINCH, GestureAction.ZOOM);
-                pinchIcon.setImageResource(android.R.drawable.star_big_on);
-            } else {
-                mCameraView.mapGesture(Gesture.PINCH, GestureAction.NONE);
-                pinchIcon.setImageResource(android.R.drawable.star_big_off);
-            }
-        }
+
     }
 
     @Override
@@ -235,20 +235,14 @@ public class CaptureVideo extends AppCompatActivity {
 
     boolean isPunchable;
 
-    @OnClick(R.id.pinch_image)
-    public void switchPinch() {
-        if (isPunchable) {
-            pinchIcon.setImageResource(android.R.drawable.star_big_off);
+    @OnClick(R.id.in_app_purchases)
+    public void openInAppPurchasesActivity(){
+        //  bp.purchase(CaptureImage.this, "android.test.purchased");
 
-            mCameraView.mapGesture(Gesture.PINCH, GestureAction.NONE); // Pinch to zoom!
-            isPunchable = false;
-        } else {
-            mCameraView.mapGesture(Gesture.PINCH, GestureAction.ZOOM); // Pinch to zoom!
-            pinchIcon.setImageResource(android.R.drawable.star_big_on);
-            isPunchable = true;
+        Intent intent = new Intent(this, InAppPurchases.class);
+        startActivity(intent);
+        finish();
         }
-        SharedPreferencesUtilities.setPinch(this, isPunchable);
-    }
 
     @OnClick(R.id.last_captured_video)
     public void showImages() {
