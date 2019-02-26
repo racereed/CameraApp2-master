@@ -45,18 +45,18 @@ public class ShowAppVideos extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences sp = getSharedPreferences("checkbox", 0);
-        boolean cb1 = sp.getBoolean("isLogin", false);
-        Log.v("checkbooleanCapture", Boolean.toString(cb1) );
+        SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
+        boolean noAdsBoolean = inAppBillingPref.getBoolean("adsboolean", false);
+        Log.v("checkbooleanCapture", Boolean.toString(noAdsBoolean) );
       //  InAppPurchases.startBillingProcessor(ShowAppVideos.this, handler);
-        if (cb1){
+        if (noAdsBoolean){
         setContentView(R.layout.activity_show_app_videos_no_ads);}
-        if (!cb1){
+        if (!noAdsBoolean){
             setContentView(R.layout.activity_show_app_videos);}
         ButterKnife.bind(this);
         UiUtilise.hideToolBar(this);
         UiUtilise.hideSystemBar(this);
-        if (!cb1) {
+        if (!noAdsBoolean) {
 
             AdsUtilities.initAds(mAdView);
         }

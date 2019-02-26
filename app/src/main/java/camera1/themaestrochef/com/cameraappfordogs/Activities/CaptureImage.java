@@ -17,9 +17,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
-import com.anjlab.android.iab.v3.BillingProcessor;
-import com.anjlab.android.iab.v3.SkuDetails;
-import com.anjlab.android.iab.v3.TransactionDetails;
+
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.Purchase;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -36,6 +36,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import camera1.themaestrochef.com.cameraappfordogs.Billing.BillingManager;
 import camera1.themaestrochef.com.cameraappfordogs.R;
 import camera1.themaestrochef.com.cameraappfordogs.Utilities.AdsUtilities;
 import camera1.themaestrochef.com.cameraappfordogs.Utilities.CapturePhotoUtils;
@@ -48,7 +49,7 @@ public class CaptureImage extends AppCompatActivity {
     private static final String CAMERA_FACING_MODE = "camera_facing_mode";
     private static final String CAMERA_MODE_FRONT = "FRONT";
     private AudioManager mAudioManager;
-    public boolean noWatermarkPurchased = true;
+    public boolean noWatermarkPurchased;
 
     @Nullable
     @BindView(R.id.adView)
@@ -129,33 +130,33 @@ public class CaptureImage extends AppCompatActivity {
 
 
     public void checkPurchases(){
-        if(InAppPurchases.bp.loadOwnedPurchasesFromGoogle()&& InAppPurchases.bp.isPurchased(InAppPurchases.DISABLEDADSID)) {
-            SharedPreferences sp = getSharedPreferences("checkbox", MODE_PRIVATE);
-            SharedPreferences.Editor et = sp.edit();
-            et.putBoolean("isLogin", true);
-            et.apply();
-            boolean test = sp.getBoolean("isLogin", false);
-            Log.v("checkbooleanCheckPur", Boolean.toString(test));
-        }
-        else{
-            Log.v("checkTransactionDetails", "transactiondetailsarenull");
-
-        }
+//        if(InAppPurchases.bp.loadOwnedPurchasesFromGoogle()&& InAppPurchases.bp.isPurchased(InAppPurchases.DISABLEDADSID)) {
+//            SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", MODE_PRIVATE);
+//            SharedPreferences.Editor et = inAppBillingPref.edit();
+//            et.putBoolean("adsboolean", true);
+//            et.apply();
+//        }
+//        else{
+//            Log.v("checkTransactionDetails", "transactiondetailsarenull");
+//
+//        }
     }
-
-    BillingProcessor.IBillingHandler handler;
+    BillingManager billingManager;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        InAppPurchases.startBillingProcessor(CaptureImage.this,handler );
         checkPurchases();
-        SharedPreferences sp = getSharedPreferences("checkbox", 0);
-        boolean cb1 = sp.getBoolean("isLogin", false);
-        Log.v("checkbooleanCapture", Boolean.toString(cb1) );
+        billingManager = new BillingManager(CaptureImage.this, new MyBillingUpdateListener());
+        SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
+        boolean noAdsBoolean = inAppBillingPref.getBoolean("adsboolean", false);
+        noWatermarkPurchased = inAppBillingPref.getBoolean("watermarkBoolean", false);
 
-        Log.v("CaptureImage123", Boolean.toString(InAppPurchases.bp.isPurchased(InAppPurchases.DISABLEDADSID)) );
-            if (cb1) {
+        Log.v("check1noadsbooleanCap", Boolean.toString(noAdsBoolean) );
+        Log.v("check1watermarboolCap", Boolean.toString(noAdsBoolean) );
+
+
+        if (noAdsBoolean) {
                 setContentView(R.layout.content_main_no_ad);
-            } if (!cb1){
+            } if (!noAdsBoolean){
                 setContentView(R.layout.content_main);
             }
 
@@ -180,7 +181,7 @@ public class CaptureImage extends AppCompatActivity {
                 if (mode.equals(CAMERA_MODE_FRONT))
                     mCameraView.setFacing(Facing.FRONT);
 
-        } if (!cb1)
+        } if (!noAdsBoolean)
         AdsUtilities.initAds(mAdView);
 
 
@@ -208,9 +209,9 @@ public class CaptureImage extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (!noWatermarkPurchased) {
                             if (PermissionUtilities.checkAndRequestPermissions(CaptureImage.this)) {
-                               
+
                                 Bitmap waterMarkedImage = ImageHelper.addWatermark
                                         (getResources(),
                                                 mCameraView.getFacing() == Facing.FRONT
@@ -229,7 +230,7 @@ public class CaptureImage extends AppCompatActivity {
                                         }
                                     });
                             }
-                        } else {
+                        } if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || noWatermarkPurchased){
                             final String imgPath = CapturePhotoUtils.insertImage(getContentResolver(), bitmap, "Captured Image", "Image Description");
                             if (imgPath != null)
                                 lastImage.post(new Runnable() {
@@ -382,6 +383,35 @@ public class CaptureImage extends AppCompatActivity {
         if (mCameraView.getFacing() == Facing.FRONT) {
             outState.putString(CAMERA_FACING_MODE, CAMERA_MODE_FRONT);
         }
+    }
+
+    class MyBillingUpdateListener implements BillingManager.BillingUpdatesListener {
+        @Override
+        public void onBillingClientSetupFinished() {
+
+            billingManager.queryPurchases();
+
+
+        }
+
+        @Override
+        public void onConsumeFinished(String token, int result) {
+
+            if (result == BillingClient.BillingResponse.OK) {
+            }
+        }
+
+        @Override
+        public void onPurchasesUpdated(List<Purchase > purchases) {
+
+            for (Purchase p : purchases) {
+
+                //update ui
+
+            }
+
+        }
+
     }
 
 

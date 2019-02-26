@@ -1,5 +1,6 @@
 package camera1.themaestrochef.com.cameraappfordogs.Activities;
 
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,14 +23,21 @@ import camera1.themaestrochef.com.cameraappfordogs.Utilities.UiUtilise;
 public class VideoPreviewActivity extends AppCompatActivity {
 
     private VideoView videoView;
-
+    @Nullable
     @BindView(R.id.adView)
     AdView mAdView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video_preview);
+        SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
+        boolean noAdsBoolean = inAppBillingPref.getBoolean("adsboolean", false);
+        if (noAdsBoolean){
+        setContentView(R.layout.activity_video_preview_no_ads);
+        }
+        if(!noAdsBoolean) {
+            setContentView(R.layout.activity_video_preview);
+        }
         UiUtilise.hideSystemBar(this);
         UiUtilise.hideToolBar(this);
 
@@ -63,10 +71,10 @@ public class VideoPreviewActivity extends AppCompatActivity {
                 playVideo();
             }
         });
+        if(!noAdsBoolean) {
 
-
-        AdsUtilities.initAds(mAdView);
-
+            AdsUtilities.initAds(mAdView);
+        }
     }
 
     void playVideo() {

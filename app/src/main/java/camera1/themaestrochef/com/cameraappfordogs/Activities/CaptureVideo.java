@@ -76,11 +76,11 @@ public class CaptureVideo extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences sp = getSharedPreferences("checkbox", 0);
-        boolean cb1 = sp.getBoolean("isLogin", false);
-        if (cb1) {
+        SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
+        boolean noAdsBoolean = inAppBillingPref.getBoolean("adsboolean", false);
+        if (noAdsBoolean) {
             setContentView(R.layout.activicy_capture_video_no_ads);
-        } if (!cb1){
+        } if (!noAdsBoolean){
             setContentView(R.layout.activity_capture_video);
         }        ButterKnife.bind(this);
 
@@ -108,7 +108,7 @@ public class CaptureVideo extends AppCompatActivity {
                     mCameraView.setFacing(Facing.FRONT);
 
         }
-        if (!cb1) {
+        if (!noAdsBoolean) {
             AdsUtilities.initAds(mAdView);
         }
 

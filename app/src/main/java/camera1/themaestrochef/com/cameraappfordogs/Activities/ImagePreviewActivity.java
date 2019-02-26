@@ -44,13 +44,12 @@ public class ImagePreviewActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences sp = getSharedPreferences("checkbox", 0);
-        boolean cb1 = sp.getBoolean("isLogin", false);
-        Log.v("checkbooleanCapture", Boolean.toString(cb1) );
-        if (cb1){
-        setContentView(R.layout.activity_image_preview);}
-        if(!cb1){
-            setContentView(R.layout.activity_image_preview_no_ads);
+        SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
+        boolean noAdsBoolean = inAppBillingPref.getBoolean("adsboolean", false);
+        if (noAdsBoolean){
+        setContentView(R.layout.activity_image_preview_no_ads);}
+        if(!noAdsBoolean){
+            setContentView(R.layout.activity_image_preview);
         }
         UiUtilise.hideSystemBar(this);
         UiUtilise.hideToolBar(this);
@@ -59,7 +58,7 @@ public class ImagePreviewActivity extends AppCompatActivity {
         mPath = getIntent().getStringExtra("imagePath");
 
         //        Glide.with(this).load(mPath).into(imageView);
-        if(!cb1) {
+        if(!noAdsBoolean) {
             AdsUtilities.initAds(mAdView);
         }
 
