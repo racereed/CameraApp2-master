@@ -1,27 +1,22 @@
 package camera1.themaestrochef.com.cameraappfordogs.Activities;
-
-import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Paint;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
-
-import com.android.billingclient.api.BillingClient;
-import com.android.billingclient.api.Purchase;
 import com.bumptech.glide.Glide;
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.otaliastudios.cameraview.CameraListener;
 import com.otaliastudios.cameraview.CameraUtils;
@@ -31,12 +26,19 @@ import com.otaliastudios.cameraview.Flash;
 import com.otaliastudios.cameraview.Gesture;
 import com.otaliastudios.cameraview.GestureAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import camera1.themaestrochef.com.cameraappfordogs.Billing.BillingManager;
+import camera1.themaestrochef.com.cameraappfordogs.Adapters.SoundsAdapter;
+import camera1.themaestrochef.com.cameraappfordogs.Billing.IabBroadcastReceiver;
+import camera1.themaestrochef.com.cameraappfordogs.Billing.IabHelper;
+import camera1.themaestrochef.com.cameraappfordogs.Billing.IabResult;
+import camera1.themaestrochef.com.cameraappfordogs.Billing.Inventory;
+import camera1.themaestrochef.com.cameraappfordogs.Billing.SkuDetails;
+import camera1.themaestrochef.com.cameraappfordogs.Models.AnimalsModel;
 import camera1.themaestrochef.com.cameraappfordogs.R;
 import camera1.themaestrochef.com.cameraappfordogs.Utilities.AdsUtilities;
 import camera1.themaestrochef.com.cameraappfordogs.Utilities.CapturePhotoUtils;
@@ -45,24 +47,31 @@ import camera1.themaestrochef.com.cameraappfordogs.Utilities.PermissionUtilities
 import camera1.themaestrochef.com.cameraappfordogs.Utilities.SharedPreferencesUtilities;
 import camera1.themaestrochef.com.cameraappfordogs.Utilities.UiUtilise;
 
-public class CaptureImage extends AppCompatActivity {
+public class CaptureImage extends AppCompatActivity implements IabBroadcastReceiver.IabBroadcastListener {
+    IabHelper mHelper;
+    IabBroadcastReceiver mBroadcastReceiver;
+    InAppPurchases inAppPurchases;
+    static final String TAG = "CaptureImage123";
     private static final String CAMERA_FACING_MODE = "camera_facing_mode";
     private static final String CAMERA_MODE_FRONT = "FRONT";
     private AudioManager mAudioManager;
     public boolean noWatermarkPurchased;
-
+    @BindView(R.id.animals_icon)
+    RecyclerView animalsList;
     @Nullable
     @BindView(R.id.adView)
     AdView mAdView;
     @BindView(R.id.camera)
     CameraView mCameraView;
-
+    SkuDetails  mSkuDetails;
     @BindView(R.id.switch_flash)
     ImageView flashIcon;
+    List<String> skuDetails;
 
 
     @BindView(R.id.last_captured_image)
     ImageView lastImage;
+    SoundsAdapter adapter;
 
     boolean isPunchable =true;
 
@@ -88,64 +97,25 @@ public class CaptureImage extends AppCompatActivity {
 
         mCameraView.destroy();
         super.onDestroy();
-    }
 
-    private void releaseMediaPlayer() {
-        // If the media player is not null, then it may be currently playing a sound.
-        if (mPlayer != null) {
-            // Regardless of the current state of the media player, release its resources
-            // because we no longer need it.
-            mPlayer.release();
+        // very important:
+        if (mBroadcastReceiver != null) {
+            unregisterReceiver(mBroadcastReceiver);
+        }
 
-            // Set the media player back to null. For our code, we've decided that
-            // setting the media player to null is an easy way to tell that the media player
-            // is not configured to play an audio file at the moment.
-            mPlayer = null;
-
-            // Regardless of whether or not we were granted audio focus, abandon it. This also
-            // unregisters the AudioFocusChangeListener so we don't get anymore callbacks.
-            mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+        // very important:
+        Log.d(TAG, "Destroying helper.");
+        if (mHelper != null) {
+            mHelper.disposeWhenFinished();
+            mHelper = null;
         }
     }
-    AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
-        @Override
-        public void onAudioFocusChange(int focusChange) {
-            if(focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
-                    focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                // AUDIOFOCUS_LOSS TRANSIENT means we have lost audio focus for a short amount of time
-                // and AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK means we have lost audio focus
-                // our app still continues to play song at lower volume but in both cases,
-                // we want our app to pause playback and start it from beginning.
-                mPlayer.pause();
-
-            } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-                // it means we have gained focused and start playback
-                mPlayer.start();
 
 
-            releaseMediaPlayer();
-            }
-        }
-    };
 
-
-    public void checkPurchases(){
-//        if(InAppPurchases.bp.loadOwnedPurchasesFromGoogle()&& InAppPurchases.bp.isPurchased(InAppPurchases.DISABLEDADSID)) {
-//            SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", MODE_PRIVATE);
-//            SharedPreferences.Editor et = inAppBillingPref.edit();
-//            et.putBoolean("adsboolean", true);
-//            et.apply();
-//        }
-//        else{
-//            Log.v("checkTransactionDetails", "transactiondetailsarenull");
-//
-//        }
-    }
-    BillingManager billingManager;
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkPurchases();
-        billingManager = new BillingManager(CaptureImage.this, new MyBillingUpdateListener());
+        mHelperSetup();
         SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
         boolean noAdsBoolean = inAppBillingPref.getBoolean("adsboolean", false);
         noWatermarkPurchased = inAppBillingPref.getBoolean("watermarkBoolean", false);
@@ -184,23 +154,133 @@ public class CaptureImage extends AppCompatActivity {
         } if (!noAdsBoolean)
         AdsUtilities.initAds(mAdView);
 
-
     }
 
 
+    private void mHelperSetup(){
+        String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlmY9+P8DiB6CSamC2LDr4veGfy/VACf8s/0LIKuPckimBEo2DXSgJngDu02cbCp1GdepN2ShTZW6GMEwlmYpb0gdrF1th4ib+zLxAO55p9Ky3u+TH+2aE35O6fPvOBZwBjJpfMYGpI4d0LEYAyb3q4nsPVvFTo4/yxqFGJPzqMsyGBSlyeOaX7FPX9G3tyPH1UFXLlMo7Ta7RNs5RHPZJLhCJYVSvnUHgdQLs/DVItuXZr2ejIjCQ9nvK7g4yNqejLnHkAT9Z8IAb1qTF4/Z4UOslqy/SgGyJHTHBV0SNIOIDknKgLlAFHFCGtl3EDD8p9JmOFEJXFqq5lMebOyNJQIDAQAB";
+
+        // Create the helper, passing it our context and the public key to verify signatures with
+        Log.d(TAG, "Creating IAB helper.");
+        mHelper = new IabHelper(this, base64EncodedPublicKey);
+
+        // enable debug logging (for a production application, you should set this to false).
+        mHelper.enableDebugLogging(false);
+
+        // Start setup. This is asynchronous and the specified listener
+        // will be called once setup completes.
+        Log.d(TAG, "Starting setup.");
+        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                Log.d(TAG, "Setup finished.");
+
+                if (!result.isSuccess()) {
+                    // Oh noes, there was a problem.
+                    complain("Problem setting up in-app billing: " + result);
+                    return;
+                }
+
+                // Have we been disposed of in the meantime? If so, quit.
+                if (mHelper == null) return;
+
+                // Important: Dynamically register for broadcast messages about updated purchases.
+                // We register the receiver here instead of as a <receiver> in the Manifest
+                // because we always call getPurchases() at startup, so therefore we can ignore
+                // any broadcasts sent while the app isn't running.
+                // Note: registering this listener in an Activity is a bad idea, but is done here
+                // because this is a SAMPLE. Regardless, the receiver must be registered after
+                // IabHelper is setup, but before first call to getPurchases().
+                mBroadcastReceiver = new IabBroadcastReceiver(CaptureImage.this);
+                IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+                registerReceiver(mBroadcastReceiver, broadcastFilter);
+
+                // IAB is fully set up. Now, let's get an inventory of stuff we own.
+                Log.d(TAG, "Setup successful. Querying inventory.");
+                try {
+
+                    mHelper.queryInventoryAsync(true, skuDetails, mGotInventoryListener);
+                } catch (IabHelper.IabAsyncInProgressException e) {
+                    complain("Error querying inventory. Another async operation in progress.");
+                }
+            }
+        });
+
+
+    }
+    // Listener that's called when we finish querying the items and subscriptions we own
+    IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+            Log.d(TAG, "Query inventory finished.");
+
+            // Have we been disposed of in the meantime? If so, quit.
+            if (mHelper == null) return;
+
+            // Is it a failure?
+            if (result.isFailure()) {
+                complain("Failed to query inventory: " + result);
+                return;
+            }
+
+            Log.d(TAG, "Query inventory was successful.");
+            SkuDetails skuDetails = inventory.getSkuDetails(InAppPurchases.DISABLEDADSID);
+            if(skuDetails!=null){
+
+                String price = skuDetails.getPrice();
+                Log.v(TAG, price);
+
+            }
+            /*
+             * Check for items we own. Notice that for each purchase, we check
+             * the developer payload to see if it's correct! See
+             * verifyDeveloperPayload().
+             */
+
+            if (inventory.hasPurchase(InAppPurchases.DISABLEDADSID)){
+                takeOffAds();
+                Log.v(TAG, "onIabPurchase finished complete Disabled ads");
+            }
+             if (inventory.hasPurchase(InAppPurchases.WATERMARKDISABLED)){
+                takeOffWaterMark();
+                Log.v(TAG, "onIabPurchase finished complete watermark");
+
+            }
+             if(inventory.hasPurchase(InAppPurchases.PROVERSIONENABLED)){
+
+                goProboth();
+                 Log.v(TAG, "onIabPurchase finished complete goPro");
+
+
+             }
+            //Your purchase details will be in the purchased object.
+            //You can also do the developer payload verification.
+
+
+        }
+    };
 
     private void initIcons() {
         mCurrentFlash = SharedPreferencesUtilities.getFlashIndex(this);
         flashIcon.setImageResource(FLASH_ICONS[mCurrentFlash]);
         mCameraView.setFlash(FLASH_OPTIONS[mCurrentFlash]);
-
         isPunchable = SharedPreferencesUtilities.getPinchValue(this);
-
-                mCameraView.mapGesture(Gesture.PINCH, GestureAction.ZOOM);
-
+        mCameraView.mapGesture(Gesture.PINCH, GestureAction.ZOOM);
+        boolean isRotated = false;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            isRotated = true;
         }
-
-
+        LinearLayoutManager layoutManager
+                = new LinearLayoutManager(this, isRotated ? 1 : 0, false);
+        animalsList.setLayoutManager(layoutManager);
+        ArrayList<AnimalsModel> list = new ArrayList<>();
+        list.add(new AnimalsModel(R.drawable.bell_button, R.raw.bell_sound));
+        list.add(new AnimalsModel(R.drawable.baby_button, R.raw.baby_sound));
+        list.add(new AnimalsModel(R.drawable.squeaky_toy, R.raw.squeakytoy1));
+        list.add(new AnimalsModel(R.drawable.puppy_button   , R.raw.puppy_sound));
+        list.add(new AnimalsModel(R.drawable.dog_button, R.raw.dog_sound));
+        //adapter here
+        adapter = new SoundsAdapter(list, this);
+        animalsList.setAdapter(adapter);
+    }
     private void saveImg(final byte[] jpeg) {
 
         CameraUtils.decodeBitmap(jpeg, new CameraUtils.BitmapCallback() {
@@ -261,76 +341,12 @@ public class CaptureImage extends AppCompatActivity {
         }
     }
 
-
-    public void makeVolumeToast(){
-
-        // Get the AudioManager instance
-        AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
-        // Get the music current volume level
-        if (am != null) {
-            int music_volume_level = am.getStreamVolume(AudioManager.STREAM_MUSIC);
-
-        // Get the device music maximum volume level
-        int max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-
-        if (music_volume_level < 2){
-            Toast.makeText(getApplicationContext(),"Volume Might Be Too Low",Toast.LENGTH_LONG).show();// Set your own toast  message
-        }}
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         PermissionUtilities.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
-    MediaPlayer mPlayer;
 
-
-
-    @OnClick(R.id.sound_toy)
-    public void playToySound() {
-
-        Log.i("hellow", "toy sound works");
-        Log.i("hellow", "toy sound works");
-        mPlayer = MediaPlayer.create(getApplicationContext(),R.raw.squeakytoy2);
-        mPlayer.start();//Start playing the music
-        makeVolumeToast();
-
-    }
-
-    @OnClick(R.id.puppy_button)
-    public void playPuppySound () {
-
-        mPlayer = MediaPlayer.create(getApplicationContext(),R.raw.puppy_sound);
-        mPlayer.start();//Start playing the music
-        makeVolumeToast();
-    }
-    @OnClick(R.id.dog_button)
-    public void playDogSound () {
-        mPlayer = MediaPlayer.create(getApplicationContext(),R.raw.dog_sound);
-        mPlayer.start();//Start playing the music
-        makeVolumeToast();
-    }
-
-    @OnClick(R.id.bell_button)
-    public void playBellSound () {
-        mPlayer = MediaPlayer.create(getApplicationContext(),R.raw.bell_sound);
-        mPlayer.start();//Start playing the music
-        makeVolumeToast();
-    }
-
-    @OnClick(R.id.baby_button)
-    public void playBabySound () {
-        mPlayer = MediaPlayer.create(getApplicationContext(),R.raw.baby_sound);
-        mPlayer.start();//Start playing the music
-        makeVolumeToast();
-    }
-
-    @Override
-    protected void onPause() {
-        mCameraView.stop();
-        super.onPause();
-    }
 
     @OnClick(R.id.take_picture)
     public void capturePic() {
@@ -369,13 +385,16 @@ public class CaptureImage extends AppCompatActivity {
     }
 
     //take this off to enable the next page to open to buy upgrades.
+    int i=0;
 
     @OnClick(R.id.settings_wheel)
     public void openInAppPurchasesActivity(){
       //  bp.purchase(CaptureImage.this, "android.test.purchased");
-        Intent intent = new Intent(this, InAppPurchases.class);
-        finish();
-        startActivity(intent);
+
+            Intent intent = new Intent(this, InAppPurchases.class);
+            finish();
+            startActivity(intent);
+
     }
 
     protected void onSaveInstanceState(Bundle outState) {
@@ -385,33 +404,44 @@ public class CaptureImage extends AppCompatActivity {
         }
     }
 
-    class MyBillingUpdateListener implements BillingManager.BillingUpdatesListener {
-        @Override
-        public void onBillingClientSetupFinished() {
-
-            billingManager.queryPurchases();
 
 
-        }
+    void complain(String message) {
+        Log.e(TAG, "**** Loook Here Error: " + message);
+        alert("Error: " + message);
+    }
+    void alert(String message) {
+        AlertDialog.Builder bld = new AlertDialog.Builder(this);
+        bld.setMessage(message);
+        bld.setNeutralButton("OK", null);
+        Log.d(TAG, "Showing alert dialog: " + message);
+        bld.create().show();
+    }
 
-        @Override
-        public void onConsumeFinished(String token, int result) {
+    @Override
+    public void receivedBroadcast() {
 
-            if (result == BillingClient.BillingResponse.OK) {
-            }
-        }
+    }
+    public void takeOffAds(){
+        SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
+        SharedPreferences.Editor et = inAppBillingPref.edit();
+        et.putBoolean("adsboolean", true);
+        et.apply();
+        boolean test = inAppBillingPref.getBoolean("adsboolean", false);
+        Log.v("Check1EditAdsTrue", Boolean.toString(test) );
+    }
+    public void takeOffWaterMark(){
+        SharedPreferences inAppBillingPref = getSharedPreferences("billingPref", 0);
+        SharedPreferences.Editor et = inAppBillingPref.edit();
+        et.putBoolean("watermarkBoolean", true);
+        et.apply();
+        boolean test = inAppBillingPref.getBoolean("watermarkBoolean", false);
+        Log.v("check1WatrmarkBoolInapp", Boolean.toString(test) );
+    }
 
-        @Override
-        public void onPurchasesUpdated(List<Purchase > purchases) {
-
-            for (Purchase p : purchases) {
-
-                //update ui
-
-            }
-
-        }
-
+    public void goProboth(){
+        takeOffWaterMark();
+        takeOffAds();
     }
 
 

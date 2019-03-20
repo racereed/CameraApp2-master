@@ -98,56 +98,17 @@
     </LinearLayout>
 
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/take_picture"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-    <Button
-        android:id="@+id/sound_toy"
-        style="@style/SoundButton"
-        android:background="@drawable/squeaky_toy"
-        ads:layout_constraintBottom_toTopOf="@+id/take_picture"
-        ads:layout_constraintEnd_toEndOf="parent"
-        ads:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/puppy_button"
-        style="@style/SoundButton"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:background="@drawable/puppy_button"
-        ads:layout_constraintBottom_toBottomOf="@+id/sound_toy"
-        ads:layout_constraintEnd_toStartOf="@+id/dog_button"
-        ads:layout_constraintHorizontal_bias="0.5"
-        ads:layout_constraintStart_toEndOf="@+id/sound_toy"
-        ads:layout_constraintTop_toTopOf="@+id/sound_toy"
-        ads:layout_constraintVertical_bias="1.0" />
-
-    <Button
-        android:id="@+id/bell_button"
-        style="@style/SoundButton"
-        android:layout_marginStart="16dp"
-        android:background="@drawable/bell_button"
-        ads:layout_constraintBottom_toBottomOf="@+id/sound_toy"
-        ads:layout_constraintStart_toStartOf="parent"
-        ads:layout_constraintTop_toTopOf="@+id/sound_toy" />
-
-    <Button
-        android:id="@+id/baby_button"
-        style="@style/SoundButton"
-        android:layout_marginEnd="4dp"
-        android:layout_marginStart="8dp"
-        android:background="@drawable/baby_button"
-        ads:layout_constraintBottom_toBottomOf="@+id/sound_toy"
-        ads:layout_constraintEnd_toStartOf="@+id/sound_toy"
-        ads:layout_constraintHorizontal_bias="0.5"
-        ads:layout_constraintStart_toEndOf="@+id/bell_button"
-        ads:layout_constraintTop_toTopOf="@+id/sound_toy"
-        ads:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/dog_button"
-        style="@style/SoundButton"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/dog_button"
-        ads:layout_constraintBottom_toBottomOf="@+id/sound_toy"
-        ads:layout_constraintEnd_toEndOf="parent"
-        ads:layout_constraintTop_toTopOf="@+id/sound_toy" />
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/animals_icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>

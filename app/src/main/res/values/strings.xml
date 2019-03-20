@@ -11,6 +11,13 @@
     <string name="APP_AD_ID">ca-app-pub-3924158907329616~9536912933</string>
     <string name="AD_VIEW_ID">ca-app-pub-3924158907329616/8186396149</string>
     <string name="ads_disabled">ads_disabled</string>
+    <string name="go_pro_string">Thank you for purchasing ProVersion! Watermark and Ads are disabled!</string>
+    <string name="ads_disabled_string">Thank you for removing ads!</string>
+    <string name="watermark_removed_string">Thank you for removing the watermark!</string>
+    <string name="go_pro_ads_string">Ads have been removed!</string>
+    <string name="go_pro_watermark_string">Watermark has been removed!</string>
+
+
     <!--Test Ad ID Below-->
     <!--<string name="AD_VIEW_ID">ca-app-pub-3940256099942544/6300978111</string>-->
 </resources>
